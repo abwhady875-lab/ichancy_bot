@@ -517,7 +517,7 @@ def get_main_menu_keyboard():
     keyboard = [
         [InlineKeyboardButton("❤️ شحن رصيد", callback_data="charge"),
          InlineKeyboardButton("💸 سحب رصيد", callback_data="withdraw")],
-        [InlineKeyboardButton("👥 نظام الإحالات", callback_data="referral_system")],
+        [InlineKeyboardBuخtton("👥 نظام الإحالات", callback_data="referral_system")],
         [InlineKeyboardButton("🎁 اهداء رصيد", callback_data="gift"),
          InlineKeyboardButton("🎟️ كود هدية", callback_data="gift_code")],
         [InlineKeyboardButton("📩 رسالة للادمن", callback_data="message_admin"),

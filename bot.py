@@ -70,7 +70,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# ======================== دوال API (كما هي دون تغيير) ========================
+# ======================== دوال API ========================
 def agent_login():
     global agent_session, agent_cookies
     try:
@@ -155,7 +155,7 @@ def register_player_via_api(username, password, email):
     except Exception as e:
         return False, f"استثناء: {str(e)}", None
 
-# ======================== دوال قاعدة البيانات (كما هي) ========================
+# ======================== دوال قاعدة البيانات ========================
 def init_db():
     with closing(sqlite3.connect(DB_PATH)) as conn:
         c = conn.cursor()
@@ -1205,7 +1205,6 @@ async def handle_private_message(update: Update, context: ContextTypes.DEFAULT_T
 
     await update.message.reply_text("✅ تم إرسال رسالتك إلى الإدارة. سنقوم بالرد قريباً إن شاء الله.")
 
-# ======================== دوال الرد الخاص ========================
 async def reply_to_user_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -1277,7 +1276,6 @@ async def reply_to_user_send(update: Update, context: ContextTypes.DEFAULT_TYPE)
     context.user_data.clear()
     return ConversationHandler.END
 
-# ======================== دوال إدارة الإعلانات ========================
 async def admin_announcement_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -2238,7 +2236,6 @@ async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 def main():
     init_db()
-    # إنشاء التطبيق مع إعدادات Webhook لـ Render
     app = Application.builder().token(BOT_TOKEN).build()
 
     charge_conv = ConversationHandler(
@@ -2362,6 +2359,5 @@ def main():
 
 if __name__ == "__main__":
     app = main()
-    # استخدام Webhook بدلاً من Polling لـ Render
     port = int(os.environ.get('PORT', 8080))
-    app.run_webhook(listen="0.0.0.0", port=port, webhook_url=f"https://ichancy-bot-gkhu.onrender.com/{BOT_TOKEN}")
+    app.run_webhook(listen="0.0.0.0", port=port)

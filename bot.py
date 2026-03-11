@@ -5,6 +5,8 @@ import sqlite3
 import base64
 import requests
 import random
+import os
+import asyncio
 from datetime import datetime
 from typing import Optional, Tuple
 from contextlib import closing
@@ -24,7 +26,7 @@ from telegram.ext import (
 BOT_TOKEN = "8625935716:AAEf1kMzndSjdwTNImfm4mqVz121d5CYNBc"
 BOT_USERNAME = "ichancy_al_king_bot"
 DB_PATH = "ichancy.db"
-ADMIN_ID = 8241794104  # ✅ معرفك الخاص
+ADMIN_ID = 8241794104
 
 # مكافآت الإحالات
 REFERRAL_BONUS = 5000
@@ -68,7 +70,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# ======================== دوال API ========================
+# ======================== دوال API (كما هي دون تغيير) ========================
 def agent_login():
     global agent_session, agent_cookies
     try:
@@ -153,7 +155,7 @@ def register_player_via_api(username, password, email):
     except Exception as e:
         return False, f"استثناء: {str(e)}", None
 
-# ======================== قاعدة البيانات ========================
+# ======================== دوال قاعدة البيانات (كما هي) ========================
 def init_db():
     with closing(sqlite3.connect(DB_PATH)) as conn:
         c = conn.cursor()
@@ -257,7 +259,6 @@ def init_db():
             )
         ''')
 
-        # جداول الإعلانات
         c.execute('''
             CREATE TABLE IF NOT EXISTS referral_announcement (
                 id INTEGER PRIMARY KEY CHECK (id=1),
@@ -401,7 +402,6 @@ def delete_ichancy_account(telegram_id: int) -> bool:
         conn.commit()
         return c.rowcount > 0
 
-# ======================== دوال الإعلانات ========================
 def set_referral_announcement(text: str):
     with closing(sqlite3.connect(DB_PATH)) as conn:
         c = conn.cursor()
@@ -517,7 +517,7 @@ def get_main_menu_keyboard():
     keyboard = [
         [InlineKeyboardButton("❤️ شحن رصيد", callback_data="charge"),
          InlineKeyboardButton("💸 سحب رصيد", callback_data="withdraw")],
-        [InlineKeyboardBuخtton("👥 نظام الإحالات", callback_data="referral_system")],
+        [InlineKeyboardButton("👥 نظام الإحالات", callback_data="referral_system")],
         [InlineKeyboardButton("🎁 اهداء رصيد", callback_data="gift"),
          InlineKeyboardButton("🎟️ كود هدية", callback_data="gift_code")],
         [InlineKeyboardButton("📩 رسالة للادمن", callback_data="message_admin"),
@@ -2238,6 +2238,7 @@ async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 def main():
     init_db()
+    # إنشاء التطبيق مع إعدادات Webhook لـ Render
     app = Application.builder().token(BOT_TOKEN).build()
 
     charge_conv = ConversationHandler(
@@ -2306,7 +2307,6 @@ def main():
     )
     app.add_handler(ichancy_withdraw_conv)
 
-    # معالجات الإعلانات
     referral_announcement_conv = ConversationHandler(
         entry_points=[CallbackQueryHandler(admin_referral_announcement_write, pattern="^admin_referral_announcement_write$")],
         states={ANNOUNCEMENT_TEXT: [MessageHandler(filters.TEXT & ~filters.COMMAND, admin_referral_announcement_save)]},
@@ -2335,7 +2335,6 @@ def main():
     )
     app.add_handler(admin_announcement_conv)
 
-    # معالج الردود الخاصة
     reply_conv = ConversationHandler(
         entry_points=[CallbackQueryHandler(reply_to_user_start, pattern="^reply_msg_\\d+$")],
         states={
@@ -2358,9 +2357,11 @@ def main():
 
     app.add_error_handler(error_handler)
 
-    print("البوت يعمل... اضغط Ctrl+C للإيقاف.")
-    app.run_polling(allowed_updates=Update.ALL_TYPES)
+    print("البوت يعمل...")
+    return app
 
 if __name__ == "__main__":
-    main()
-app.run_webhook(listen="0.0.0.0", port=8080)
+    app = main()
+    # استخدام Webhook بدلاً من Polling لـ Render
+    port = int(os.environ.get('PORT', 8080))
+    app.run_webhook(listen="0.0.0.0", port=port, webhook_url=f"https://ichancy-bot-gkhu.onrender.com/{BOT_TOKEN}")
